@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="pragma" content="no-cache">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Running Man Video Demo</title>
+			<style>
+		
+			a{
+				background: white url("images/unpushbuttonred.jpg") no-repeat bottom;	/*Adds red button images on each anchor tag */
+				padding: 26px 40px 30px 40px;	/*Adds a padding on each side of the button image */
+				z-index:2;	/*Places the red button images on the second top layer */
+				border: 1px solid black; /*Adds border on each button image */
+				box-sizing: border-box;
+			}
+			
+			
+			div#controls{
+				margin: 0px 20px 0px 50px;	/*Adds margin on the set of control button images */
+				position:absolute;	/*Assigs a position behavior on the set of control button images */
+				width: 1000px;	/*Assigns the width of the location for control buttons */
+				
+			}
+			img{
+				
+				position: fixed;
+				padding-top:50px;
+			}
+			div#effects{
+				margin: 0px 20px 0px -300px;	/*Adds margin on the set of effect button images */
+				position: absolute;	/*Assigs a position behavior on the set of effect button images */
+				width: 1000px;	/*Assigns the width of the location for effect buttons */
+			}
+			div#videoSelection{
+				margin: 0px 20px 0px 400px;	/*Adds margin on the set of video selection button images */
+				position: absolute;	/*Assigs a position behavior on the set of video selection button images */
+				width: 400px;	/*Assigns the width of the location for video selection buttons */
+			}
+
+			div#dashboard{
+				display: inline-flex;
+				position: fixed;
+				padding:100px 770px 100px 500px;
+				-webkit-align-items:flex-start;
+				align-items: flex-start;
+				margin-left: 40px;
+				top: 430px;
+				background: url("images/board.jpg") repeat-x;
+				z-index:1;
+				
+			}
+			div#console{
+				position: relative;
+			}
+			div#videoDiv{
+				position: fixed;
+				left: 330px;
+				top: 75px;
+				z-index: 3;
+			}
+			#video{
+				border: 2px solid black;
+				background-color: black;
+
+			}
+			body{
+				background: black url("images/theater.png") no-repeat fixed;
+				z-index:0;
+
+			}
+			div#videoDiv canvas{
+				position: absolute;
+				border-width:2px;
+				border-style: solid;
+				top: 0px;
+				left:0px;
+			}
+
+		
+		</style>
+		<script>
+			var videos = { video1: "video/runningman131", video2: "video/runningman135"};
+			var effectFunction = null;
+			window.onload = function(){	// Calls a function when the browser loads
+				
+				var video = document.getElementById("video");
+				video.src = videos.video1 + getFormatExtension();
+				video.load();
+				var controlLinks = document.querySelectorAll("a.control");	// Grabs the array of element objects and assigns to a variable
+				for (var i = 0; i < controlLinks.length; i++){	// Loops to every object on the array
+					controlLinks[i].onclick = handleControl;	//Calls a handler when an element object is clicked
+				}
+				var effectLinks = document.querySelectorAll("a.effect");	// Grabs the array of element objects and assigns to a variable
+				for (var i = 0; i < effectLinks.length; i++){	// Loops to every object on the array
+					effectLinks[i].onclick = setEffect;	//Calls a handler when an element object is clicked
+				}
+				var videoLinks = document.querySelectorAll("a.videoSelection");	// Grabs the array of element objects and assigns to a variable
+				for (var i = 0; i < videoLinks.length; i++){	// Loops to every object on the array
+					videoLinks[i].onclick = setVideo;	//Calls a handler when an element object is clicked
+				}
+
+				pushUnpushButtons("video1", []);
+				pushUnpushButtons("normal", []);
+				video.addEventListener("ended", endedHandler, false);
+				video.addEventListener("play", processFrame, false);
+				video.addEventListener("error", errorHandler, false);
+			};
+			function errorHandler(){
+				var video = document.getElementById("video");
+				if (video.error){
+					video.poster = "images/runningman.jpg";
+					alert(video.error.code);
+				}
+			}
+			function processFrame(){
+				var video = document.getElementById("video");
+				if (video.paused || video.ended){
+					return;
+				}
+				var bufferCanvas = document.getElementById("buffer");
+				var displayCanvas = document.getElementById("display");
+				var buffer = bufferCanvas.getContext("2d");
+				var display = displayCanvas.getContext("2d");
+				buffer.drawImage(video, 0, 0, bufferCanvas.width, bufferCanvas.height);
+				var frame = buffer.getImageData(0, 0, bufferCanvas.width, bufferCanvas.height);
+				var length = frame.data.length / 4;
+				for (var i = 0; i < length; i++){
+					var r = frame.data[i * 4 + 0];
+					var g = frame.data[i * 4 + 1];
+					var b = frame.data[i * 4 + 2];
+					if (effectFunction){
+						effectFunction(i, r, g, b, frame.data);
+					}
+				}
+				display.putImageData(frame, 0, 0);
+				setTimeout(processFrame, 0);
+			}
+			function endedHandler(){
+				pushUnpushButtons("", ["play"]);
+			}
+			function getFormatExtension(){
+				var video = document.getElementById("video");
+			if (video.canPlayType("video/mp4") != ""){
+				return ".mp4";
+			} else if (video.canPlayType("video/ogg") != ""){
+				return ".ogv";
+			} else if (video.canPlayType("video/webm") != ""){
+				return ".webm";
+			}
+		}
+			function handleControl(e){
+				var id = e.target.getAttribute("id");
+				var video = document.getElementById("video");
+				if (id == "play"){	
+					if (document.getElementById("pause").getAttribute("class").indexOf("selected") >= 0){		
+						video.play();
+					} else {
+						video.load();
+						video.play();
+					}
+					pushUnpushButtons("play", ["pause"]);
+				} else if (id == "pause"){
+					pushUnpushButtons("pause", ["play"]);
+						video.pause();
+				} else if (id == "loop"){
+					if (isButtonPushed("loop")){
+						pushUnpushButtons("", ["loop"]);
+					} else {
+						pushUnpushButtons("loop", []);
+					}
+					video.loop = !video.loop;
+				} else if (id == "mute"){
+					if (isButtonPushed("mute")){
+						pushUnpushButtons("", ["mute"]);
+					} else {
+						pushUnpushButtons("mute", []);
+					}
+					video.muted = !video.muted;
+				}
+			}
+
+			function setEffect(e){
+				var id = e.target.getAttribute("id");
+				if (id == "normal"){
+					pushUnpushButtons("normal", ["western", "noir", "scifi"]);
+					effectFunction = null;
+				} else if (id == "western"){
+					pushUnpushButtons("western", ["normal", "noir", "scifi"]);
+					effectFunction = western;
+				} else if (id == "noir"){
+					pushUnpushButtons("noir", ["normal", "western", "scifi"]);
+					effectFunction = noir;
+				} else if (id == "scifi"){
+					pushUnpushButtons("scifi", ["normal", "western", "noir"]);
+					effectFunction = scifi;
+				} 
+			}
+			function noir (pos, r, g, b, data){
+				var brightness = (3 * r + 4 * g + b) >>> 3;
+				if (brightness < 0){ brightness = 0;}
+				data[pos * 4 + 0] = brightness;
+				data[pos * 4 + 1] = brightness;
+				data[pos * 4 + 2] = brightness;
+			}
+			function western (pos, r, g, b, data){
+				var brightness = (3 * r + 4 * g + b) >>> 3;
+				data[pos * 4 + 0] = brightness + 40;
+				data[pos * 4 + 1] = brightness + 20;
+				data[pos * 4 + 2] = brightness - 20;
+			}
+			function scifi (pos, r, g, b, data){
+				var offset = pos * 4;
+				data[offset] = Math.round(255 - r);
+				data[offset + 1] = Math.round(255 - g);
+				data[offset + 2] = Math.round(255 - b);
+			}
+			
+			function setVideo(e){
+				var id = e.target.getAttribute("id");
+				var video = document.getElementById("video");
+				if (id == "video1"){
+					pushUnpushButtons("video1", ["video2"]);
+				} else if (id == "video2"){
+					pushUnpushButtons("video2", ["video1"]);
+				}
+				video.src = videos[id] + getFormatExtension();
+				video.load();
+				video.play();
+
+				pushUnpushButtons("play", ["pause"]);
+			}
+
+			function pushUnpushButtons(idToPush, idArrayToUnpush){
+				if (idToPush != ""){
+					var anchor = document.getElementById(idToPush);
+					var theClass = anchor.getAttribute("class");
+					if (!theClass.indexOf("selected") >= 0){
+						theClass = theClass + "selected";
+						anchor.setAttribute("class", theClass);
+						var newImage = "url('images/pushbuttonred.jpg')";
+						anchor.style.backgroundImage = newImage;
+
+					}
+				}
+
+			
+				for (var i = 0; i < idArrayToUnpush.length; i++){
+					anchor = document.getElementById(idArrayToUnpush[i]);
+					theClass = anchor.getAttribute("class");
+					if (theClass.indexOf("selected") >= 0){
+						theClass = theClass.replace("selected", "");
+						anchor.setAttribute("class", theClass);
+						anchor.style.backgroundImage = "";
+					}
+				}
+			}
+
+			function isButtonPushed(id){
+				var anchor = document.getElementById(id);
+				var theClass = anchor.getAttribute("class");
+				return (theClass.indexOf("selected") >= 0);
+			}
+		</script>
+	</head>
+	<body>
+			
+		<div id="booth">
+			<div id="console">
+				<div id="videoDiv">
+					<video id="video" width="700" height="345"></video>
+					<canvas id="buffer" width="700" height="345"></canvas>
+					<canvas id="display" width="700" height="345"></canvas>
+				</div>
+
+				<div id="dashboard">
+					
+					<div id="effects">
+						<img class="control" src="images/effect.png">
+						<a class="effect" id="normal"></a>
+						<a class="effect" id="western"></a>
+						<a class="effect" id="noir"></a>
+						<a class="effect" id="scifi"></a>
+					</div>
+					<div id="controls">
+						<img class="control" src="images/controls.png">
+						<a class="control" id="play"></a>
+						<a class="control" id="pause"></a>
+						<a class="control" id="loop"></a>
+						<a class="control" id="mute"></a>
+					</div>
+					<div id="videoSelection">
+						<img class="control" src="images/videoSelection.png">
+						<a class="videoSelection" id="video1"></a>
+						<a class="videoSelection" id="video2"></a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</body>
+</html>

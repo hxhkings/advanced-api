@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Running Man Tv</title>
+	<link href="webVilleVid.css" rel="stylesheet" type="text/css">
+	<script>
+		var position = 0;
+		var playlist;
+		var video;
+		window.onload = function(){
+				playlist = ["video/runningman131", "video/runningman135",
+				"video/runningman140","video/runningman147","video/runningman162"];
+				video =document.getElementById("video");
+				video.addEventListener("ended", nextVideo, false);
+				video.src = playlist[position] + getFormatExtension();
+				video.load();
+				video.play();
+				alert("Playing " + video.src);
+		};
+		function nextVideo(){
+			position++;
+			if (position >= playlist.length){
+				position = 0;
+			}
+			video.src = playlist[position] + getFormatExtension();
+			video.load();
+			video.play();
+			alert("Playing " + video.src);
+		}
+		
+		function getFormatExtension(){
+			if (video.canPlayType("video/mp4") != ""){
+				return ".mp4";
+			} else if (video.canPlayType("video/ogg") != ""){
+				return ".ogv";
+			} else if (video.canPlayType("video/webm") != ""){
+				return ".webm";
+			}
+		}
+	</script>
+</head>
+<body>
+	<div id="tv">
+		<div id="tvConsole">
+			<div id="highlight">
+				<img src="highlight.jpg" alt="highlight for tv" width="762" height="500">
+			</div>
+	
+			<div id="videoDiv">
+				<video controls  width="480" height="550" poster="runningman.jpg" id="video">
+				</video>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

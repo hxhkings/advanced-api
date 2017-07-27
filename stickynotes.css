@@ -1,0 +1,73 @@
+li{
+	font-size: 32px;
+	font-weight: bold;
+	font-family: "Times New Roman", Times, serif;
+	width: 250px;
+	height:300px;
+	margin: 30px;
+	padding: 10px;
+	box-shadow: 5px 5px 20px;
+	float: left;
+
+}
+ul{
+	list-style-type: none;
+	max-width: 3000px;
+	display: inline;
+}
+li{
+	transform:rotateZ(-3deg);
+
+}
+
+li:first-child{
+	transform: rotateZ(-1deg);
+	-webkit-transform-origin: 20% 40%;
+}
+li:nth-child(2){
+	transform: rotateZ(1deg);
+	-webkit-transform-origin: 20% 40%;
+}
+li:nth-child(3){
+	transform: rotateZ(-3deg);
+}
+li:nth-child(4){
+	transform: rotateZ(5deg);
+}
+li:nth-child(5){
+	transform: rotateZ(-6deg);
+}
+li:nth-child(6){
+	transform: rotate(5deg);
+}
+li:nth-child(7){
+	transform: rotate(-7deg);
+}
+body{
+	background-image: url("images/corkboard.jpg");	
+
+}
+label{
+	color:white;
+	font-weight:bolder;
+	margin-right: 2px;
+}
+form{
+	background-color: black;
+	width: 493px;
+	height: 30px;
+	display:flex;
+	align-items: center;
+	padding-left: 6px;	
+	border: 1px solid white;
+}
+label:nth-of-type(2){
+	padding-left: 5px;
+}
+input#add_button{
+	margin-left: 2px;
+	font-weight: bold;
+}
+input#add_button:hover{
+	background-color: lightgreen;
+}
